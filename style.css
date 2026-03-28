@@ -58,8 +58,8 @@ body {
 
 /* ── Header ────────────────────────────────────────────── */
 header {
-  border-top: 4px solid var(--border);
-  border-bottom: 4px solid var(--border);
+  border-top: 4px solid #1a1816;
+  border-bottom: 4px solid #1a1816;
   padding: 0;
   /* 기본(모바일): 줄무늬 중심 ≈ 뷰포트 75% - 8px, about-content와 맞춤 */
   background:
@@ -67,17 +67,17 @@ header {
       to bottom,
       rgba(255,255,255,0.16) 0px,
       rgba(255,255,255,0.16) 4px,
-      #0a0806 4px,
-      #0a0806 10px
+      #c8c4b8 4px,
+      #c8c4b8 10px
     ) calc(75% + 6px) 50% / 56px 65% no-repeat,
     linear-gradient(
       to right,
-      #1a1a18 calc(75% - 36px),
+      #c8c4b8 calc(75% - 36px),
       #0a0806 calc(75% - 36px),
       #0a0806 calc(75% + 20px),
-      #1a1a18 calc(75% + 20px)
+      #c8c4b8 calc(75% + 20px)
     ),
-    #1a1a18;
+    #c8c4b8;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -196,7 +196,7 @@ header {
   font-family: 'Neo둥근모', monospace;
   font-size: 24px;
   text-decoration: none;
-  color: #d8d4c0;
+  color: #1a1816;
   letter-spacing: 0.05em;
 }
 
@@ -210,7 +210,7 @@ nav a {
   font-size: 14px;
   letter-spacing: 0.08em;
   text-decoration: none;
-  color: #888070;
+  color: #5a5450;
   padding: 0.3rem 0.9rem;
   border: 2px solid transparent;
   display: inline-flex;
@@ -245,7 +245,7 @@ nav a:hover,
 nav a.current {
   border: 2px solid transparent;
   background: transparent;
-  color: #d8d4c0;
+  color: #1a1816;
 }
 
 nav a:hover::before,
@@ -618,15 +618,15 @@ section {
       to bottom,
       rgba(255,255,255,0.13) 0px,
       rgba(255,255,255,0.13) 4px,
-      #0a0806 4px,
-      #0a0806 10px
+      #232321 4px,
+      #232321 10px
     ) calc(75% + 14px) 50% / 56px 60% no-repeat,
     linear-gradient(
       to right,
-      #1a1a18 calc(75% - 28px),
+      #232321 calc(75% - 28px),
       #0a0806 calc(75% - 28px),
       #0a0806 calc(75% + 28px),
-      #1a1a18 calc(75% + 28px)
+      #232321 calc(75% + 28px)
     );
 }
 
@@ -836,13 +836,13 @@ section {
 
 /* ── Footer ────────────────────────────────────────────── */
 footer {
-  border-top: 4px solid var(--border);
+  border-top: 4px solid #1a1816;
   text-align: center;
   padding: 1rem;
   font-size: 13px;
-  color: var(--muted);
+  color: #1a1816;
   letter-spacing: 0.12em;
-  background: var(--bg2);
+  background: #c8c4b8;
 }
 
 footer p::before { content: '[ '; }
@@ -1032,17 +1032,17 @@ footer p::after  { content: ' ]'; }
         to bottom,
         rgba(255,255,255,0.16) 0px,
         rgba(255,255,255,0.16) 4px,
-        #0a0806 4px,
-        #0a0806 10px
+        #c8c4b8 4px,
+        #c8c4b8 10px
       ) calc(50% + 203px) 50% / 56px 65% no-repeat,
       linear-gradient(
         to right,
-        #1a1a18 calc(50% + 175px),
+        #c8c4b8 calc(50% + 175px),
         #0a0806 calc(50% + 175px),
         #0a0806 calc(50% + 231px),
-        #1a1a18 calc(50% + 231px)
+        #c8c4b8 calc(50% + 231px)
       ),
-      #1a1a18;
+      #c8c4b8;
   }
 }
 
