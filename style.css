@@ -805,6 +805,9 @@ footer p::after  { content: ' ]'; }
 
   .sidebar {
     position: static;
+    width: auto;
+    max-width: none;
+    overflow: visible;
   }
 
   .filter-buttons {
@@ -825,6 +828,17 @@ footer p::after  { content: ' ]'; }
     border-top: 1px dashed var(--muted);
     padding-top: 4px;
     margin-bottom: 0;
+  }
+
+  .about-content {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .about-photo,
+  .about-photo-fallback {
+    width: 80px;
+    height: 80px;
   }
 
   .works-grid {
