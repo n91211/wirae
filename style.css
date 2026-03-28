@@ -8,74 +8,38 @@
   font-display: swap;
 }
 
-/* ── Variables ─────────────────────────────────────────── */
+/* ── Variables (다크모드 고정) ──────────────────────────── */
 :root {
-  --bg:             #f4f0e8;
-  --bg2:            #e8e2d4;
-  --text:           #1c1a14;
-  --border:         #1c1a14;
-  --muted:          #5a5648;
-  --card-bg:        #ddd8c8;
-  --panel-bg:       #f4f0e8;
-  --shadow:         4px 4px 0 #1c1a14;
-  --shadow-sm:      2px 2px 0 #1c1a14;
-  --img-bg:         #a8a29a;   /* 카드 이미지 영역 배경 */
-  --warm-gray:      #181614;   /* 카드/필터 그림자·테두리용 웜그레이 */
-  --header-h:       94px;      /* sticky sidebar top offset */
+  --bg:             #0e0e0e;
+  --bg2:            #1a1a18;
+  --text:           #d8d4c0;
+  --border:         #d8d4c0;
+  --muted:          #888070;
+  --card-bg:        #1e1e1a;
+  --panel-bg:       #0e0e0e;
+  --shadow:         4px 4px 0 #d8d4c0;
+  --shadow-sm:      2px 2px 0 #d8d4c0;
+  --img-bg:         #252520;
+  --warm-gray:      #2a2724;
+  --header-h:       94px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg:             #0e0e0e;
-    --bg2:            #1a1a18;
-    --text:           #d8d4c0;
-    --border:         #d8d4c0;
-    --muted:          #888070;
-    --card-bg:        #1e1e1a;
-    --panel-bg:       #0e0e0e;
-    --shadow:         4px 4px 0 #d8d4c0;
-    --shadow-sm:      2px 2px 0 #d8d4c0;
-    --img-bg:         #252520;
-    --warm-gray:      #2a2724;
-  }
-}
+/* ── Genre tag colors ───────────────────────────────────── */
+.tag-fantasy  { color: #44cc66; border-color: #44cc66; }
+.tag-sf       { color: #44aaff; border-color: #44aaff; }
+.tag-horror   { color: #ff4444; border-color: #ff4444; }
+.tag-mystery  { color: #bb55ee; border-color: #bb55ee; }
+.tag-thriller { color: #ffcc33; border-color: #ffcc33; }
+.tag-romance  { color: #ff66aa; border-color: #ff66aa; }
+.tag-genre    { color: #55ccbb; border-color: #55ccbb; }
 
-/* ── Genre tag colors (16-bit palette) ─────────────────── */
-/* Light mode */
-.tag-fantasy  { color: #2a8c3c; border-color: #2a8c3c; }  /* Zelda forest green */
-.tag-sf       { color: #1660c4; border-color: #1660c4; }  /* Mega Man blue */
-.tag-horror   { color: #cc1818; border-color: #cc1818; }  /* Castlevania red */
-.tag-mystery  { color: #7722aa; border-color: #7722aa; }  /* adventure purple */
-.tag-thriller { color: #a07000; border-color: #a07000; }  /* amber tension */
-.tag-romance  { color: #cc2266; border-color: #cc2266; }  /* classic pink */
-.tag-genre    { color: #3a8888; border-color: #3a8888; }  /* teal neutral */
-
-/* Type tag colors */
-.tag-short    { color: #3a5f8a; border-color: #3a5f8a; }  /* slate blue */
-.tag-flash    { color: #8a3a6f; border-color: #8a3a6f; }  /* mauve */
-.tag-novella  { color: #4a6824; border-color: #4a6824; }  /* olive */
-.tag-coll     { color: #7a4820; border-color: #7a4820; }  /* leather brown */
-.tag-web      { color: #cc5500; border-color: #cc5500; }  /* orange */
-.tag-toon     { color: #aa2277; border-color: #aa2277; }  /* magenta */
-.tag-chat     { color: #6644aa; border-color: #6644aa; }  /* purple */
-
-@media (prefers-color-scheme: dark) {
-  .tag-fantasy  { color: #44cc66; border-color: #44cc66; }
-  .tag-sf       { color: #44aaff; border-color: #44aaff; }
-  .tag-horror   { color: #ff4444; border-color: #ff4444; }
-  .tag-mystery  { color: #bb55ee; border-color: #bb55ee; }
-  .tag-thriller { color: #ffcc33; border-color: #ffcc33; }
-  .tag-romance  { color: #ff66aa; border-color: #ff66aa; }
-  .tag-genre    { color: #55ccbb; border-color: #55ccbb; }
-
-  .tag-short    { color: #6699dd; border-color: #6699dd; }
-  .tag-flash    { color: #cc77bb; border-color: #cc77bb; }
-  .tag-novella  { color: #88cc44; border-color: #88cc44; }
-  .tag-coll     { color: #cc8855; border-color: #cc8855; }
-  .tag-web      { color: #ff8833; border-color: #ff8833; }
-  .tag-toon     { color: #ff55aa; border-color: #ff55aa; }
-  .tag-chat     { color: #9977dd; border-color: #9977dd; }
-}
+.tag-short    { color: #6699dd; border-color: #6699dd; }
+.tag-flash    { color: #cc77bb; border-color: #cc77bb; }
+.tag-novella  { color: #88cc44; border-color: #88cc44; }
+.tag-coll     { color: #cc8855; border-color: #cc8855; }
+.tag-web      { color: #ff8833; border-color: #ff8833; }
+.tag-toon     { color: #ff55aa; border-color: #ff55aa; }
+.tag-chat     { color: #9977dd; border-color: #9977dd; }
 
 /* ── Reset ─────────────────────────────────────────────── */
 *, *::before, *::after {
@@ -97,21 +61,21 @@ header {
   border-top: 4px solid #111;
   border-bottom: 4px solid #111;
   padding: 0;
-  /* 세로 끈이 헤더 가운데 있고, 끈 가운데 부분만 수평 줄무늬 */
+  /* 세로 끈(56px): 끈 면이 배경보다 밝고, 가운데 수평 홈(어두운 줄) */
   background:
     repeating-linear-gradient(
       to bottom,
-      rgba(255,255,255,0.10) 0px,
-      rgba(255,255,255,0.10) 1px,
-      transparent 1px,
-      transparent 5px
-    ) calc(50% - 22px) 50% / 44px 65% no-repeat,
+      rgba(0,0,0,0.55) 0px,
+      rgba(0,0,0,0.55) 2px,
+      transparent 2px,
+      transparent 4px
+    ) calc(50% - 28px) 50% / 56px 65% no-repeat,
     linear-gradient(
       to right,
-      transparent calc(50% - 22px),
-      #252220 calc(50% - 22px),
-      #252220 calc(50% + 22px),
-      transparent calc(50% + 22px)
+      transparent calc(50% - 28px),
+      #302e2a calc(50% - 28px),
+      #302e2a calc(50% + 28px),
+      transparent calc(50% + 28px)
     ),
     #141210;
   position: sticky;
@@ -373,67 +337,35 @@ section {
 }
 
 /* Genre-colored filter buttons — 태그와 동일 스타일 */
-.filter-btn.flt-fantasy  { border-color: #2a8c3c; color: #2a8c3c; border-width: 1px; }
-.filter-btn.flt-sf       { border-color: #1660c4; color: #1660c4; border-width: 1px; }
-.filter-btn.flt-horror   { border-color: #cc1818; color: #cc1818; border-width: 1px; }
-.filter-btn.flt-mystery  { border-color: #7722aa; color: #7722aa; border-width: 1px; }
-.filter-btn.flt-thriller { border-color: #a07000; color: #a07000; border-width: 1px; }
-.filter-btn.flt-romance  { border-color: #cc2266; color: #cc2266; border-width: 1px; }
-.filter-btn.flt-genre    { border-color: #3a8888; color: #3a8888; border-width: 1px; }
-.filter-btn.flt-web      { border-color: #cc5500; color: #cc5500; border-width: 1px; }
-.filter-btn.flt-toon     { border-color: #aa2277; color: #aa2277; border-width: 1px; }
-.filter-btn.flt-chat     { border-color: #6644aa; color: #6644aa; border-width: 1px; }
-.filter-btn.flt-short    { border-color: #3a5f8a; color: #3a5f8a; border-width: 1px; }
-.filter-btn.flt-flash    { border-color: #8a3a6f; color: #8a3a6f; border-width: 1px; }
-.filter-btn.flt-novella  { border-color: #4a6824; color: #4a6824; border-width: 1px; }
-.filter-btn.flt-coll     { border-color: #7a4820; color: #7a4820; border-width: 1px; }
+.filter-btn.flt-fantasy  { border-color: #44cc66; color: #44cc66; border-width: 1px; }
+.filter-btn.flt-sf       { border-color: #44aaff; color: #44aaff; border-width: 1px; }
+.filter-btn.flt-horror   { border-color: #ff4444; color: #ff4444; border-width: 1px; }
+.filter-btn.flt-mystery  { border-color: #bb55ee; color: #bb55ee; border-width: 1px; }
+.filter-btn.flt-thriller { border-color: #ffcc33; color: #ffcc33; border-width: 1px; }
+.filter-btn.flt-romance  { border-color: #ff66aa; color: #ff66aa; border-width: 1px; }
+.filter-btn.flt-genre    { border-color: #55ccbb; color: #55ccbb; border-width: 1px; }
+.filter-btn.flt-web      { border-color: #ff8833; color: #ff8833; border-width: 1px; }
+.filter-btn.flt-toon     { border-color: #ff55aa; color: #ff55aa; border-width: 1px; }
+.filter-btn.flt-chat     { border-color: #9977dd; color: #9977dd; border-width: 1px; }
+.filter-btn.flt-short    { border-color: #6699dd; color: #6699dd; border-width: 1px; }
+.filter-btn.flt-flash    { border-color: #cc77bb; color: #cc77bb; border-width: 1px; }
+.filter-btn.flt-novella  { border-color: #88cc44; color: #88cc44; border-width: 1px; }
+.filter-btn.flt-coll     { border-color: #cc8855; color: #cc8855; border-width: 1px; }
 
-.filter-btn.flt-fantasy.active  { background: #2a8c3c; color: #fff; }
-.filter-btn.flt-sf.active       { background: #1660c4; color: #fff; }
-.filter-btn.flt-horror.active   { background: #cc1818; color: #fff; }
-.filter-btn.flt-mystery.active  { background: #7722aa; color: #fff; }
-.filter-btn.flt-thriller.active { background: #a07000; color: #fff; }
-.filter-btn.flt-romance.active  { background: #cc2266; color: #fff; }
-.filter-btn.flt-genre.active    { background: #3a8888; color: #fff; }
-.filter-btn.flt-web.active      { background: #cc5500; color: #fff; }
-.filter-btn.flt-toon.active     { background: #aa2277; color: #fff; }
-.filter-btn.flt-chat.active     { background: #6644aa; color: #fff; }
-.filter-btn.flt-short.active    { background: #3a5f8a; color: #fff; }
-.filter-btn.flt-flash.active    { background: #8a3a6f; color: #fff; }
-.filter-btn.flt-novella.active  { background: #4a6824; color: #fff; }
-.filter-btn.flt-coll.active     { background: #7a4820; color: #fff; }
-
-@media (prefers-color-scheme: dark) {
-  .filter-btn.flt-fantasy  { border-color: #44cc66; color: #44cc66; }
-  .filter-btn.flt-sf       { border-color: #44aaff; color: #44aaff; }
-  .filter-btn.flt-horror   { border-color: #ff4444; color: #ff4444; }
-  .filter-btn.flt-mystery  { border-color: #bb55ee; color: #bb55ee; }
-  .filter-btn.flt-thriller { border-color: #ffcc33; color: #ffcc33; }
-  .filter-btn.flt-romance  { border-color: #ff66aa; color: #ff66aa; }
-  .filter-btn.flt-genre    { border-color: #55ccbb; color: #55ccbb; }
-  .filter-btn.flt-web      { border-color: #ff8833; color: #ff8833; }
-  .filter-btn.flt-toon     { border-color: #ff55aa; color: #ff55aa; }
-  .filter-btn.flt-chat     { border-color: #9977dd; color: #9977dd; }
-  .filter-btn.flt-short    { border-color: #6699dd; color: #6699dd; }
-  .filter-btn.flt-flash    { border-color: #cc77bb; color: #cc77bb; }
-  .filter-btn.flt-novella  { border-color: #88cc44; color: #88cc44; }
-  .filter-btn.flt-coll     { border-color: #cc8855; color: #cc8855; }
-
-  .filter-btn.flt-fantasy.active  { background: #44cc66; color: #111; }
-  .filter-btn.flt-sf.active       { background: #44aaff; color: #111; }
-  .filter-btn.flt-horror.active   { background: #ff4444; color: #111; }
-  .filter-btn.flt-mystery.active  { background: #bb55ee; color: #111; }
-  .filter-btn.flt-thriller.active { background: #ffcc33; color: #111; }
-  .filter-btn.flt-romance.active  { background: #ff66aa; color: #111; }
-  .filter-btn.flt-genre.active    { background: #55ccbb; color: #111; }
-  .filter-btn.flt-web.active      { background: #ff8833; color: #111; }
-  .filter-btn.flt-toon.active     { background: #ff55aa; color: #111; }
-  .filter-btn.flt-chat.active     { background: #9977dd; color: #111; }
-  .filter-btn.flt-short.active    { background: #6699dd; color: #111; }
-  .filter-btn.flt-flash.active    { background: #cc77bb; color: #111; }
-  .filter-btn.flt-novella.active  { background: #88cc44; color: #111; }
-  .filter-btn.flt-coll.active     { background: #cc8855; color: #111; }
-}
+.filter-btn.flt-fantasy.active  { background: #44cc66; color: #111; }
+.filter-btn.flt-sf.active       { background: #44aaff; color: #111; }
+.filter-btn.flt-horror.active   { background: #ff4444; color: #111; }
+.filter-btn.flt-mystery.active  { background: #bb55ee; color: #111; }
+.filter-btn.flt-thriller.active { background: #ffcc33; color: #111; }
+.filter-btn.flt-romance.active  { background: #ff66aa; color: #111; }
+.filter-btn.flt-genre.active    { background: #55ccbb; color: #111; }
+.filter-btn.flt-web.active      { background: #ff8833; color: #111; }
+.filter-btn.flt-toon.active     { background: #ff55aa; color: #111; }
+.filter-btn.flt-chat.active     { background: #9977dd; color: #111; }
+.filter-btn.flt-short.active    { background: #6699dd; color: #111; }
+.filter-btn.flt-flash.active    { background: #cc77bb; color: #111; }
+.filter-btn.flt-novella.active  { background: #88cc44; color: #111; }
+.filter-btn.flt-coll.active     { background: #cc8855; color: #111; }
 
 /* ── Works grid ────────────────────────────────────────── */
 .works-grid {
@@ -674,65 +606,44 @@ section {
 .about-content {
   display: grid;
   grid-template-columns: 128px 1fr;
-  grid-template-rows: auto auto;
+  grid-template-rows: auto 1fr;
   column-gap: 2rem;
   row-gap: 0;
   padding: 1.2rem;
   border: 2px solid var(--border);
   box-shadow: var(--shadow);
-  /* 컴보이 본체: 바랜 회색 플라스틱 + 오른쪽 가깝지만 안 붙은 세로 끈(가운데만 줄무늬) */
+  /* 세로 끈(56px, 75% 위치): 끈 면이 배경보다 밝고, 가운데만 어두운 홈 줄무늬 */
   background:
     repeating-linear-gradient(
       to bottom,
-      rgba(0,0,0,0.30) 0px,
-      rgba(0,0,0,0.30) 1px,
-      transparent 1px,
-      transparent 8px
-    ) calc(75% - 22px) 50% / 44px 60% no-repeat,
+      rgba(0,0,0,0.55) 0px,
+      rgba(0,0,0,0.55) 2px,
+      transparent 2px,
+      transparent 4px
+    ) calc(75% - 28px) 50% / 56px 60% no-repeat,
     linear-gradient(
       to right,
-      #c2bd98 calc(75% - 22px),
-      #1a1814 calc(75% - 22px),
-      #1a1814 calc(75% + 22px),
-      #c2bd98 calc(75% + 22px)
+      #1a1a18 calc(75% - 28px),
+      #2e2c28 calc(75% - 28px),
+      #2e2c28 calc(75% + 28px),
+      #1a1a18 calc(75% + 28px)
     );
-}
-
-@media (prefers-color-scheme: dark) {
-  .about-content {
-    background:
-      repeating-linear-gradient(
-        to bottom,
-        rgba(255,255,255,0.06) 0px,
-        rgba(255,255,255,0.06) 1px,
-        transparent 1px,
-        transparent 8px
-      ) calc(75% - 22px) 50% / 44px 60% no-repeat,
-      linear-gradient(
-        to right,
-        var(--bg2) calc(75% - 22px),
-        #0c0b09 calc(75% - 22px),
-        #0c0b09 calc(75% + 22px),
-        var(--bg2) calc(75% + 22px)
-      );
-  }
-}
 
 .about-photo {
   grid-column: 1;
-  grid-row: 1;
+  grid-row: 1 / 3;
   width: 128px;
   height: 128px;
   object-fit: cover;
   border: 2px solid var(--border);
   display: block;
   image-rendering: pixelated;
-  align-self: center;
+  align-self: start;
 }
 
 .about-photo-fallback {
   grid-column: 1;
-  grid-row: 1;
+  grid-row: 1 / 3;
   width: 128px;
   height: 128px;
   border: 2px solid var(--border);
@@ -743,7 +654,7 @@ section {
   font-size: 12px;
   color: var(--muted);
   text-align: center;
-  align-self: center;
+  align-self: start;
 }
 
 .about-name {
@@ -751,17 +662,17 @@ section {
   grid-row: 1;
   font-family: 'Neo둥근모', monospace;
   font-size: 24px;
-  margin-bottom: 0;
-  align-self: center;
+  margin-bottom: 0.6rem;
+  align-self: start;
 }
 
 .about-bio {
-  grid-column: 1 / -1;
+  grid-column: 2;
   grid-row: 2;
   font-size: 14px;
   line-height: 1.9;
-  max-width: 68%;
-  margin-top: 0.8rem;
+  max-width: 560px;
+  align-self: start;
 }
 
 .about-contact {
@@ -1066,6 +977,9 @@ footer p::after  { content: ' ]'; }
   }
 
   .about-bio {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    margin-top: 0.8rem;
     max-width: none;
   }
 
