@@ -328,13 +328,22 @@ const HISTORY = {
     { year: '2025', text: 'HUSS 테이크오프 페스타 릴레이 특강', link: null },
     { year: '2025', text: '「귀신새 우는 소리」 앤솔로지 북토크', link: null },
   ],
+  affiliations: [
+    { year: '', text: '괴이학회', link: null },
+    { year: '', text: '환상해역', link: null },
+    { year: '', text: '웹소설작가연합', link: null },
+    { year: '', text: '한국과학소설작가연대', link: null },
+    { year: '', text: '작가노조 준비위원회', link: null },
+    { year: '', text: '청강대학교 만화컨텐츠스쿨', link: null },
+  ],
 };
 
 const HISTORY_TABS = [
-  { key: 'awards',     label: '수상' },
-  { key: 'reviews',    label: '리뷰' },
-  { key: 'interviews', label: '인터뷰' },
-  { key: 'lectures',   label: '강연' },
+  { key: 'awards',       label: '수상' },
+  { key: 'reviews',      label: '리뷰' },
+  { key: 'interviews',   label: '인터뷰' },
+  { key: 'lectures',     label: '강연' },
+  { key: 'affiliations', label: '소속' },
 ];
 
 let currentHistoryTab = 'awards';
