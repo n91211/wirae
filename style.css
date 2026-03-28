@@ -58,23 +58,23 @@ body {
 
 /* ── Header ────────────────────────────────────────────── */
 header {
-  border-top: 4px solid #111;
-  border-bottom: 4px solid #111;
+  border-top: 4px solid var(--border);
+  border-bottom: 4px solid var(--border);
   padding: 0;
   /* 세로 끈(56px): 끈 면이 배경보다 밝고, 가운데 수평 홈(어두운 줄) */
   background:
     repeating-linear-gradient(
       to bottom,
-      rgba(0,0,0,0.55) 0px,
-      rgba(0,0,0,0.55) 2px,
+      rgba(0,0,0,0.75) 0px,
+      rgba(0,0,0,0.75) 2px,
       transparent 2px,
       transparent 4px
     ) calc(50% - 28px) 50% / 56px 65% no-repeat,
     linear-gradient(
       to right,
       transparent calc(50% - 28px),
-      #302e2a calc(50% - 28px),
-      #302e2a calc(50% + 28px),
+      #3c3834 calc(50% - 28px),
+      #3c3834 calc(50% + 28px),
       transparent calc(50% + 28px)
     ),
     #141210;
@@ -616,18 +616,19 @@ section {
   background:
     repeating-linear-gradient(
       to bottom,
-      rgba(0,0,0,0.55) 0px,
-      rgba(0,0,0,0.55) 2px,
+      rgba(0,0,0,0.75) 0px,
+      rgba(0,0,0,0.75) 2px,
       transparent 2px,
       transparent 4px
     ) calc(75% - 28px) 50% / 56px 60% no-repeat,
     linear-gradient(
       to right,
       #1a1a18 calc(75% - 28px),
-      #2e2c28 calc(75% - 28px),
-      #2e2c28 calc(75% + 28px),
+      #3c3834 calc(75% - 28px),
+      #3c3834 calc(75% + 28px),
       #1a1a18 calc(75% + 28px)
     );
+}
 
 .about-photo {
   grid-column: 1;
@@ -791,6 +792,7 @@ section {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
+  font-family: 'Neo둥근모', monospace;
 }
 
 .history-table tr {
@@ -911,7 +913,25 @@ footer p::after  { content: ' ]'; }
   }
 
   .dpad {
-    display: none;
+    width: 26px;
+    height: 26px;
+  }
+
+  .dpad::before {
+    top: 7px;
+    width: 26px;
+    height: 12px;
+  }
+
+  .dpad::after {
+    left: 7px;
+    width: 12px;
+    height: 26px;
+  }
+
+  .dpad-center {
+    top: 7px;
+    left: 7px;
   }
 
   .header-about {
