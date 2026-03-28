@@ -94,10 +94,19 @@ body {
 
 /* ── Header ────────────────────────────────────────────── */
 header {
-  border-top: 4px solid var(--border);
-  border-bottom: 4px solid var(--border);
+  border-top: 4px solid #111;
+  border-bottom: 4px solid #111;
   padding: 0;
-  background: var(--bg2);
+  /* 짙은 회색 바탕, 가운데에 옅은 회색 줄 (컴보이 검은 띠 패턴) */
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.07) 0px,
+      rgba(255,255,255,0.07) 2px,
+      transparent 2px,
+      transparent 6px
+    ) 0 50% / 100% 40% no-repeat,
+    #1e1c18;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -110,6 +119,61 @@ header {
   padding: 0.75rem 1.5rem;
   max-width: 860px;
   margin: 0 auto;
+}
+
+/* D-pad + 타이틀 묶음 */
+.site-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ── D-pad (십자 방향키) ─────────────────────────────── */
+.dpad {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+}
+
+/* 가로 막대 */
+.dpad::before {
+  content: '';
+  position: absolute;
+  top: 11px;
+  left: 0;
+  width: 34px;
+  height: 12px;
+  background: linear-gradient(to bottom,
+    #3a3630 0%,
+    #252220 45%,
+    #0e0c0a 100%
+  );
+  border-radius: 2px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.2),
+    inset 0 -1px 0 rgba(0,0,0,0.7),
+    0 3px 7px rgba(0,0,0,0.95);
+}
+
+/* 세로 막대 */
+.dpad::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 11px;
+  width: 12px;
+  height: 34px;
+  background: linear-gradient(to right,
+    #3a3630 0%,
+    #252220 45%,
+    #0e0c0a 100%
+  );
+  border-radius: 2px;
+  box-shadow:
+    inset 1px 0 0 rgba(255,255,255,0.2),
+    inset -1px 0 0 rgba(0,0,0,0.7),
+    3px 0 7px rgba(0,0,0,0.95);
 }
 
 .header-about {
@@ -149,13 +213,8 @@ header {
   font-family: 'Neo둥근모', monospace;
   font-size: 24px;
   text-decoration: none;
-  color: var(--text);
+  color: #d8d4c0;
   letter-spacing: 0.05em;
-}
-
-.site-title::before {
-  content: '▶ ';
-  font-size: 14px;
 }
 
 nav {
@@ -168,18 +227,47 @@ nav a {
   font-size: 14px;
   letter-spacing: 0.08em;
   text-decoration: none;
-  color: var(--text);
+  color: #888070;
   padding: 0.3rem 0.9rem;
   border: 2px solid transparent;
-  display: inline-block;
-  transition: background 0.1s, color 0.1s, border-color 0.1s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.12s;
+}
+
+/* 빨간 버튼 (선택 표시) */
+nav a::before {
+  content: '';
+  display: block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  /* 빛반사 + 그림자로 입체감 */
+  background: radial-gradient(circle at 35% 30%,
+    #ff7070 0%,
+    #cc1111 50%,
+    #880808 100%
+  );
+  box-shadow:
+    inset -1px -1px 2px rgba(0,0,0,0.55),
+    inset 1px 1px 1px rgba(255,180,180,0.35),
+    0 1px 4px rgba(0,0,0,0.85);
+  opacity: 0;
+  transition: opacity 0.12s;
 }
 
 nav a:hover,
 nav a.current {
-  border: 2px solid var(--border);
-  background: var(--text);
-  color: var(--bg);
+  border: 2px solid transparent;
+  background: transparent;
+  color: #d8d4c0;
+}
+
+nav a:hover::before,
+nav a.current::before {
+  opacity: 1;
 }
 
 /* ── Main layout ───────────────────────────────────────── */
@@ -573,7 +661,22 @@ section {
   padding: 1.2rem;
   border: 2px solid var(--border);
   box-shadow: var(--shadow);
-  background: var(--bg2);
+  /* 컴보이 본체: 바랜 회색 플라스틱 + 오른쪽 검은 띠(줄무늬 포함) */
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 5px,
+      rgba(0,0,0,0.30) 5px,
+      rgba(0,0,0,0.30) 7px
+    ) right / 27% 100% no-repeat,
+    linear-gradient(to right, #c2bd98 73%, #1a1814 73%);
+}
+
+@media (prefers-color-scheme: dark) {
+  .about-content {
+    background: var(--bg2);
+  }
 }
 
 .about-photo {
@@ -855,6 +958,10 @@ footer p::after  { content: ' ]'; }
     flex-direction: column;
     gap: 0.5rem;
     text-align: center;
+  }
+
+  .dpad {
+    display: none;
   }
 
   .header-about {
