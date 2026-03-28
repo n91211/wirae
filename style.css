@@ -69,7 +69,7 @@ header {
       rgba(255,255,255,0.16) 4px,
       #c8c4b8 4px,
       #c8c4b8 10px
-    ) calc(75% + 6px) 50% / 56px 65% no-repeat,
+    ) calc(75% + 6px) 100% / 56px 60% no-repeat,
     linear-gradient(
       to right,
       #c8c4b8 calc(75% - 36px),
@@ -1034,7 +1034,7 @@ footer p::after  { content: ' ]'; }
         rgba(255,255,255,0.16) 4px,
         #c8c4b8 4px,
         #c8c4b8 10px
-      ) calc(50% + 203px) 50% / 56px 65% no-repeat,
+      ) calc(50% + 203px) 100% / 56px 60% no-repeat,
       linear-gradient(
         to right,
         #c8c4b8 calc(50% + 175px),
