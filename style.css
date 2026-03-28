@@ -102,10 +102,10 @@ header {
     repeating-linear-gradient(
       to bottom,
       rgba(255,255,255,0.07) 0px,
-      rgba(255,255,255,0.07) 2px,
-      transparent 2px,
-      transparent 6px
-    ) 0 50% / 100% 40% no-repeat,
+      rgba(255,255,255,0.07) 1px,
+      transparent 1px,
+      transparent 9px
+    ) 0 50% / 100% 20% no-repeat,
     #1e1c18;
   position: sticky;
   top: 0;
@@ -164,16 +164,28 @@ header {
   left: 11px;
   width: 12px;
   height: 34px;
-  background: linear-gradient(to right,
+  background: linear-gradient(to bottom,
     #3a3630 0%,
     #252220 45%,
     #0e0c0a 100%
   );
   border-radius: 2px;
   box-shadow:
-    inset 1px 0 0 rgba(255,255,255,0.2),
-    inset -1px 0 0 rgba(0,0,0,0.7),
-    3px 0 7px rgba(0,0,0,0.95);
+    inset 0 1px 0 rgba(255,255,255,0.2),
+    inset 0 -1px 0 rgba(0,0,0,0.7),
+    0 3px 7px rgba(0,0,0,0.95);
+}
+
+/* 중앙 원 — 교차점을 덮어 십자가 인상 완화 */
+.dpad-center {
+  position: absolute;
+  top: 11px;
+  left: 11px;
+  width: 12px;
+  height: 12px;
+  background: radial-gradient(circle at 38% 34%, #3a3630, #181410);
+  border-radius: 50%;
+  z-index: 2;
 }
 
 .header-about {
@@ -661,21 +673,31 @@ section {
   padding: 1.2rem;
   border: 2px solid var(--border);
   box-shadow: var(--shadow);
-  /* 컴보이 본체: 바랜 회색 플라스틱 + 오른쪽 검은 띠(줄무늬 포함) */
+  /* 컴보이 본체: 바랜 회색 플라스틱 + 오른쪽 고정폭 검은 띠(줄무늬 포함) */
+  padding-right: calc(1.2rem + 68px);
   background:
     repeating-linear-gradient(
       to bottom,
       transparent 0px,
-      transparent 5px,
-      rgba(0,0,0,0.30) 5px,
-      rgba(0,0,0,0.30) 7px
-    ) right / 27% 100% no-repeat,
-    linear-gradient(to right, #c2bd98 73%, #1a1814 73%);
+      transparent 11px,
+      rgba(0,0,0,0.28) 11px,
+      rgba(0,0,0,0.28) 12px
+    ) right / 60px 100% no-repeat,
+    linear-gradient(to right, #c2bd98 calc(100% - 60px), #1a1814 calc(100% - 60px));
 }
 
 @media (prefers-color-scheme: dark) {
   .about-content {
-    background: var(--bg2);
+    padding-right: calc(1.2rem + 68px);
+    background:
+      repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 11px,
+        rgba(255,255,255,0.05) 11px,
+        rgba(255,255,255,0.05) 12px
+      ) right / 60px 100% no-repeat,
+      linear-gradient(to right, var(--bg2) calc(100% - 60px), #0c0b09 calc(100% - 60px));
   }
 }
 
