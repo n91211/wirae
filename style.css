@@ -623,14 +623,12 @@ section {
 }
 
 .about-contact {
-  grid-column: 1 / -1;
+  grid-column: 2;
   grid-row: 3;
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
-  margin-top: 0.7rem;
-  padding-top: 0.6rem;
-  border-top: 1px dashed var(--muted);
+  margin-top: 0.8rem;
 }
 
 .contact-row {
@@ -928,6 +926,10 @@ footer p::after  { content: ' ]'; }
     max-width: none;
   }
 
+  .about-contact {
+    grid-column: 1 / -1;
+    grid-row: 3;
+  }
 
   .works-grid {
     grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
