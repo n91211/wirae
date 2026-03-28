@@ -169,7 +169,7 @@ header::before {
   left: 11px;
   width: 12px;
   height: 12px;
-  background: radial-gradient(circle at 38% 34%, #3a3630, #181410);
+  background: radial-gradient(circle at 38% 34%, #252220, #111010);
   border-radius: 50%;
   z-index: 2;
 }
