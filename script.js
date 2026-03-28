@@ -68,7 +68,7 @@ function makeTag(label, classMap) {
 
 // Preferred display order
 const GENRE_ORDER = ['판타지', 'SF', '호러', '미스터리', '스릴러', '로맨스'];
-const TYPE_ORDER  = ['단편', '초단편', '경장편', '소설집', '웹소설', '웹툰', '채팅소설'];
+const TYPE_ORDER  = ['초단편', '단편', '경장편', '소설집', '웹소설', '웹툰', '채팅소설'];
 
 function buildFilterList() {
   const genreSet = new Set();
@@ -373,7 +373,7 @@ function renderHistoryContent() {
   const contentEl = document.getElementById('historyContent');
   if (!contentEl) return;
 
-  const items = HISTORY[currentHistoryTab] || [];
+  const items = (HISTORY[currentHistoryTab] || []).slice().reverse();
 
   if (items.length === 0) {
     contentEl.innerHTML = '<p class="history-empty">항목을 업데이트 중입니다.</p>';
