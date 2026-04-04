@@ -202,13 +202,14 @@
 
   function spawnFood() {
     const occ = new Set([...p1.body, ...p2.body].map(c => `${c.x},${c.y}`));
-    let x, y, tries = 0;
-    do {
+    let x, y;
+    // Retry up to 400 times; exit early once a free cell is found
+    for (let i = 0; i < 400; i++) {
       x = Math.floor(Math.random() * COLS);
       y = Math.floor(Math.random() * ROWS);
-    } while (occ.has(`${x},${y}`) && ++tries < 400);
-    if (tries >= 400) return;  // grid full — skip food placement
-    food = { x, y };
+      if (!occ.has(`${x},${y}`)) { food = { x, y }; return; }
+    }
+    // Grid is effectively full — leave food unchanged
   }
 
   // ── Game loop ─────────────────────────────────────────────
@@ -352,9 +353,8 @@
 
   function drawFrame() {
     const pal = palette();
-    const W   = canvas.width;
-    const H   = canvas.height;
-    const cs  = cellSize;
+    const W = canvas.width;
+    const H = canvas.height;
 
     // ── Background: draw each cell as a faint dot-grid ─────
     ctx.fillStyle = pal.bg;
@@ -467,6 +467,7 @@
   }
 
   function drawFood(pal) {
+    if (!food) return;
     const cs = cellSize;
     const s  = Math.max(4, Math.floor(cs * 0.5));
     const ox = r(food.x * cs + Math.floor((cs - s) / 2));
