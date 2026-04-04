@@ -934,6 +934,11 @@ footer p::after  { content: ''; }
   line-height: 1.3;
 }
 
+/* ── Mobile expand wrapper (hidden on desktop) ──────────── */
+#docsExpandWrapMobile {
+  display: none;
+}
+
 /* ── Expand toggle ──────────────────────────────────────── */
 .docs-expand-btn {
   font-family: 'Neo둥근모', monospace;
@@ -1100,19 +1105,43 @@ footer p::after  { content: ''; }
     gap: 1rem 0.8rem;
   }
 
+  /* Reorder: viewer → mobile expand btn → list */
   .docs-layout {
-    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .docs-viewer {
+    order: 1;
+  }
+
+  #docsExpandWrapMobile {
+    order: 2;
+    display: flex;
+    justify-content: center;
+    padding: 0.6rem 0 0.2rem;
   }
 
   .docs-list {
+    order: 3;
     position: static;
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 4px;
+    flex-direction: column;
   }
 
+  /* Hide log list by default on mobile; show when expanded */
+  #docs .docs-layout:not(.docs-expanded) .docs-list {
+    display: none;
+  }
+
+  /* Override expanded grid layout for mobile */
   .docs-layout.docs-expanded .docs-list {
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Hide desktop expand btn on mobile */
+  #docsExpandWrap {
+    display: none;
   }
 
   .docs-list-item {

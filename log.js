@@ -51,6 +51,8 @@ function renderTabs() {
   });
 
   if (expandWrap) expandWrap.appendChild(buildExpandToggle());
+  const mobileWrap = document.getElementById('docsExpandWrapMobile');
+  if (mobileWrap) mobileWrap.appendChild(buildExpandToggle());
 }
 
 // ── Helpers ─────────────────────────────────────────────────
@@ -87,13 +89,14 @@ function getPageNumbers(current, total) {
 // ── List ────────────────────────────────────────────────────
 
 function renderList() {
-  const listEl    = document.getElementById('docsList');
-  const layoutEl  = document.querySelector('.docs-layout');
-  const expandBtn = document.querySelector('#docsExpandWrap .docs-expand-btn');
+  const listEl   = document.getElementById('docsList');
+  const layoutEl = document.querySelector('.docs-layout');
   if (!listEl) return;
   listEl.innerHTML = '';
-  if (layoutEl)  layoutEl.classList.toggle('docs-expanded', isExpanded);
-  if (expandBtn) expandBtn.textContent = isExpanded ? '▲ 접기' : '▼ 펼치기';
+  if (layoutEl) layoutEl.classList.toggle('docs-expanded', isExpanded);
+  document.querySelectorAll('.docs-expand-btn').forEach(btn => {
+    btn.textContent = isExpanded ? '▲ 접기' : '▼ 펼치기';
+  });
 
   const items = DOCS.filter(d => d.category === currentTab);
 

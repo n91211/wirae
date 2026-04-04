@@ -2,20 +2,33 @@
    work.js — 위래의 blog 작업 페이지
    ============================================================ */
 
-const TOOLS = [
+const WORK_TABS = ['도구', '오락'];
+
+const WORK_ITEMS = [
   {
     id:       'ascii576',
+    tab:      '도구',
     title:    'ASKII64',
     tagClass: 'tag-ascii',
     tagLabel: '16-bit',
     desc:     '사진을 끌어다 놓으면 아스키 아트를 생성합니다. 1:1 비율은 가로 128자 세로 64줄, 2:3 비율은 가로 128자 세로 96줄, 3:2 비율은 가로 192자 세로 64줄입니다. 가로 글자 수가 픽셀 수의 두 배인 것은 Neo둥근모 기준 종횡비 보정 때문입니다. 해당 아스키 아트는 고정폭 폰트를 필수로 사용해야 하며, <pre> 태그, 코드 블록, 플레인 텍스트 등 공백과 줄바꿈을 유지하는 환경이어야 합니다. 가변폭 폰트 환경(메모장 등)에서는 정상적으로 표시되지 않습니다.',
     script:   'tools/ascii576.js',
   },
+  {
+    id:       'snake',
+    tab:      '오락',
+    title:    'snake',
+    tagClass: null,
+    tagLabel: null,
+    desc:     null,
+    script:   null,
+  },
 ];
 
 window.ToolRegistry = window.ToolRegistry || {};
 
-let currentTool = TOOLS[0].id;
+let currentTab  = WORK_TABS[0];
+let currentItem = null;
 const loadedScripts = new Set();
 
 // ── Script loader ─────────────────────────────────────────
@@ -32,7 +45,7 @@ function loadToolScript(src, callback) {
     callback();
   };
   s.onerror = () => {
-    const ui = document.getElementById('tool-ui-' + currentTool);
+    const ui = document.getElementById('work-ui-' + (currentItem?.id || ''));
     if (ui) ui.textContent = '도구를 불러오지 못했습니다.';
   };
   document.body.appendChild(s);
@@ -40,51 +53,125 @@ function loadToolScript(src, callback) {
 
 // ── Tabs ──────────────────────────────────────────────────
 
-function renderToolTabs() {
-  const tabsEl    = document.getElementById('toolTabs');
-  const contentEl = document.getElementById('toolContent');
-  if (!tabsEl || !contentEl) return;
+function renderTabs() {
+  const tabsEl = document.getElementById('workTabs');
+  if (!tabsEl) return;
 
-  TOOLS.forEach(tool => {
+  WORK_TABS.forEach(tab => {
     const btn = document.createElement('button');
-    btn.className = 'tool-tab' + (tool.id === currentTool ? ' active' : '');
-    btn.textContent = tool.title;
+    btn.className = 'history-tab' + (tab === currentTab ? ' active' : '');
+    btn.textContent = tab;
     btn.addEventListener('click', () => {
-      currentTool = tool.id;
-      tabsEl.querySelectorAll('.tool-tab').forEach(b => b.classList.remove('active'));
+      if (currentTab === tab) return;
+      currentTab  = tab;
+      currentItem = null;
+      tabsEl.querySelectorAll('.history-tab').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      renderToolContent();
+      renderList();
+      const items = WORK_ITEMS.filter(i => i.tab === currentTab);
+      if (items.length > 0) selectItem(items[0]);
+      else showEmpty();
     });
     tabsEl.appendChild(btn);
   });
-
-  renderToolContent();
 }
 
-// ── Content area ──────────────────────────────────────────
+// ── List ──────────────────────────────────────────────────
 
-function renderToolContent() {
-  const contentEl = document.getElementById('toolContent');
-  if (!contentEl) return;
+function renderList() {
+  const listEl = document.getElementById('workList');
+  if (!listEl) return;
+  listEl.innerHTML = '';
 
-  const tool = TOOLS.find(t => t.id === currentTool);
-  if (!tool) return;
+  const items = WORK_ITEMS.filter(i => i.tab === currentTab);
 
-  contentEl.innerHTML = '';
+  if (items.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'docs-list-empty';
+    empty.textContent = '항목이 없습니다.';
+    listEl.appendChild(empty);
+    return;
+  }
 
-  const desc = document.createElement('p');
-  desc.className = 'tool-desc';
-  desc.textContent = tool.desc;
-  contentEl.appendChild(desc);
+  items.forEach(item => {
+    const el = document.createElement('div');
+    el.className = 'docs-list-item' + (item === currentItem ? ' active' : '');
+    el.setAttribute('role', 'button');
+    el.setAttribute('tabindex', '0');
 
-  const ui = document.createElement('div');
-  ui.className = 'tool-ui';
-  ui.id = 'tool-ui-' + tool.id;
-  contentEl.appendChild(ui);
+    const titleEl = document.createElement('span');
+    titleEl.className = 'docs-list-title';
+    titleEl.textContent = item.title;
 
-  if (tool.script) {
-    loadToolScript(tool.script, () => {
-      const handler = window.ToolRegistry[tool.id];
+    el.appendChild(titleEl);
+
+    if (item.tagLabel) {
+      const tagEl = document.createElement('span');
+      tagEl.className = 'docs-list-date';
+      tagEl.textContent = item.tagLabel;
+      el.appendChild(tagEl);
+    }
+
+    el.addEventListener('click', () => selectItem(item));
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectItem(item); }
+    });
+
+    listEl.appendChild(el);
+  });
+}
+
+// ── Select & Viewer ───────────────────────────────────────
+
+function selectItem(item) {
+  currentItem = item;
+
+  document.querySelectorAll('#workList .docs-list-item').forEach((el, i) => {
+    const items = WORK_ITEMS.filter(x => x.tab === currentTab);
+    el.classList.toggle('active', items[i] === item);
+  });
+
+  renderViewer(item);
+}
+
+function showEmpty() {
+  const viewerEl = document.getElementById('workViewer');
+  if (!viewerEl) return;
+  viewerEl.innerHTML = '<div class="docs-viewer-empty">항목이 없습니다.</div>';
+}
+
+function renderViewer(item) {
+  const viewerEl = document.getElementById('workViewer');
+  if (!viewerEl) return;
+  viewerEl.innerHTML = '';
+
+  const titleEl = document.createElement('div');
+  titleEl.className = 'docs-article-title';
+  titleEl.textContent = item.title;
+  viewerEl.appendChild(titleEl);
+
+  if (item.tagLabel) {
+    const tagEl = document.createElement('div');
+    tagEl.className = 'docs-article-date';
+    tagEl.textContent = item.tagLabel;
+    viewerEl.appendChild(tagEl);
+  }
+
+  if (item.desc) {
+    const descEl = document.createElement('p');
+    descEl.className = 'tool-desc';
+    descEl.textContent = item.desc;
+    viewerEl.appendChild(descEl);
+  }
+
+  if (item.script) {
+    const ui = document.createElement('div');
+    ui.className = 'tool-ui';
+    ui.id = 'work-ui-' + item.id;
+    viewerEl.appendChild(ui);
+
+    loadToolScript(item.script, () => {
+      const handler = window.ToolRegistry[item.id];
       if (handler?.init) handler.init(ui);
     });
   }
@@ -92,4 +179,9 @@ function renderToolContent() {
 
 // ── Init ──────────────────────────────────────────────────
 
-renderToolTabs();
+(function init() {
+  renderTabs();
+  renderList();
+  const items = WORK_ITEMS.filter(i => i.tab === currentTab);
+  if (items.length > 0) selectItem(items[0]);
+})();
