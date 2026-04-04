@@ -192,6 +192,7 @@
       x = Math.floor(Math.random() * COLS);
       y = Math.floor(Math.random() * ROWS);
     } while (occ.has(`${x},${y}`) && ++tries < 400);
+    if (tries >= 400) return;  // grid full — skip food placement
     food = { x, y };
   }
 
@@ -262,11 +263,12 @@
   // ── Input ─────────────────────────────────────────────────
   function isActive() { return canvas && document.body.contains(canvas); }
 
+  // Reject only exact reversal of currently moving direction
   function setDir1(dx, dy) {
-    if (dx !== -p1.next.x || dy !== -p1.next.y) p1.next = { x: dx, y: dy };
+    if (dx !== -p1.dir.x || dy !== -p1.dir.y) p1.next = { x: dx, y: dy };
   }
   function setDir2(dx, dy) {
-    if (dx !== -p2.next.x || dy !== -p2.next.y) p2.next = { x: dx, y: dy };
+    if (dx !== -p2.dir.x || dy !== -p2.dir.y) p2.next = { x: dx, y: dy };
   }
 
   function tryStart(wasOver) {
@@ -488,11 +490,11 @@
 
     // Player labels (bottom corners)
     ctx.textBaseline = 'bottom';
-    ctx.fillStyle    = palette().p1;
+    ctx.fillStyle    = pal.p1;
     ctx.textAlign    = 'left';
     ctx.fillText('P1', 4, H - 3);
 
-    ctx.fillStyle = palette().p2;
+    ctx.fillStyle = pal.p2;
     ctx.textAlign = 'right';
     ctx.fillText('P2', W - 4, H - 3);
 
