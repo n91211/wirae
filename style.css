@@ -1407,77 +1407,88 @@ html[data-theme="light"] .tag-game {
 }
 
 /* ── Snake2 game layout ─────────────────────────────────── */
-.snake2-wrap {
+
+/* PC: canvas only, centered */
+.snake2-wrap.snake2-pc {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
+  width: 100%;
+  padding: 0.5rem 0;
+}
+
+/* Mobile: [P1 dpad] → [canvas] → [P2 dpad], column */
+.snake2-wrap.snake2-touch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
   width: 100%;
   padding: 0;
-  box-sizing: border-box;
+  /* Full viewport in landscape */
+  min-height: 100svh;
+  justify-content: center;
 }
 
 .snake2-canvas-area {
-  position: relative;
   flex-shrink: 0;
 }
 
 .snake2-canvas-area canvas {
   display: block;
   image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
 
+/* D-pad container */
 .snake2-dpad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 0;
+}
+
+/* Player label above/below the dpad grid */
+.snake2-dpad-label {
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+  margin-bottom: 2px;
+}
+
+/* 3-column grid: . up . / left down right */
+.snake2-dpad-grid {
   display: grid;
   grid-template-areas:
     ". up ."
-    "left . right"
-    ". down .";
+    "left down right";
   gap: 4px;
-  flex-shrink: 0;
 }
 
-.snake2-dpad button {
-  width: 44px;
-  height: 44px;
-  background: var(--border);
+.snake2-btn {
+  width: 40px;
+  height: 40px;
+  background: var(--card-bg);
   border: 1px solid var(--muted);
-  color: var(--fg);
-  font-size: 16px;
+  color: var(--text);
+  font-size: 14px;
   cursor: pointer;
-  border-radius: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+  touch-action: manipulation;
 }
 
-.snake2-dpad button:active { background: var(--muted); }
-.snake2-dpad .dpad-up    { grid-area: up; }
-.snake2-dpad .dpad-left  { grid-area: left; }
-.snake2-dpad .dpad-right { grid-area: right; }
-.snake2-dpad .dpad-down  { grid-area: down; }
+.snake2-btn:active,
+.snake2-btn:focus { background: var(--warm-gray); outline: none; }
 
-/* Mobile portrait — stack D-pads below canvas */
-@media (max-width: 720px) {
-  .snake2-wrap {
-    flex-direction: column;
-  }
-  .snake2-dpad-row {
-    display: flex;
-    gap: 24px;
-    justify-content: center;
-  }
-}
-
-/* Mobile landscape — side-by-side layout */
-@media (orientation: landscape) and (max-width: 900px) {
-  .snake2-wrap {
-    flex-direction: row;
-    align-items: center;
-  }
-}
+.dpad-up    { grid-area: up; }
+.dpad-left  { grid-area: left; }
+.dpad-down  { grid-area: down; }
+.dpad-right { grid-area: right; }
 
 /* ── 데스크탑 라이트모드 줄무늬 위치 조정 ──────────────── */
 @media (min-width: 860px) {

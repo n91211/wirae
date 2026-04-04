@@ -1,48 +1,61 @@
 /* ============================================================
    snake2.js — Two-player Snake game (Snake2)
    P1: W/A/S/D  |  P2: Arrow keys or O/K/L/;
+   Pixel-dot art, site-theme colours, no D-pad on PC.
    ============================================================ */
 
 (function () {
   'use strict';
 
   // ── Constants ──────────────────────────────────────────────
-  const COLS        = 20;
-  const ROWS        = 20;
-  const INIT_MS     = 200;   // initial interval (ms)
-  const MIN_MS      = 133;   // max speed (200 * 2/3 ≈ 133, ~1.5× faster)
-  const MS_STEP     = 3;     // ms reduction per food eaten
-  const LS_KEY      = 'snake2-highscore';
+  const COLS    = 20;
+  const ROWS    = 20;
+  const INIT_MS = 200;   // initial tick interval (ms)
+  const MIN_MS  = 133;   // speed cap: ~1.5× faster
+  const MS_STEP = 3;     // ms reduction per food eaten
+  const LS_KEY  = 'snake2-highscore';
+  const GAP     = 2;     // px gap between cells for dot-art look
 
-  // Player colors (dot art: body color, head color, eye color)
-  const P1_COLOR    = '#44ddaa';  // teal-green
-  const P1_HEAD     = '#22bb88';
-  const P2_COLOR    = '#ff8844';  // orange
-  const P2_HEAD     = '#dd5522';
-  const FOOD_COLOR  = '#ff4455';
-  const FOOD_SHINE  = '#ff99aa';
+  // Touch device detection (used for layout & controls)
+  const IS_TOUCH = window.matchMedia('(pointer: coarse)').matches;
+
+  // ── Site-theme colour palette ──────────────────────────────
+  function palette() {
+    const dark = document.documentElement.getAttribute('data-theme') !== 'light';
+    return {
+      bg:        dark ? '#0e0e0e' : '#e8e2d0',
+      cell:      dark ? '#1a1a18' : '#d4cfbe',  // subtle grid cell bg
+      dot:       dark ? '#252520' : '#c8c3b0',  // corner dots
+      text:      dark ? '#d8d4c0' : '#2a2724',
+      muted:     '#888070',
+      p1:        '#44cc99',   // teal
+      p1h:       '#22aa77',   // head (darker)
+      p2:        '#ee8844',   // orange
+      p2h:       '#cc6622',   // head (darker)
+      food:      '#dd4444',
+      foodShine: '#ff7777',
+      overlay:   dark ? 'rgba(14,14,14,0.80)' : 'rgba(232,226,208,0.85)',
+    };
+  }
 
   // ── State ──────────────────────────────────────────────────
-  let cellSize, canvas, ctx, wrap;
+  let cellSize, canvas, ctx;
   let p1, p2, food;
   let intervalMs, timer;
   let score, highScore;
   let gameState;  // 'ready' | 'running' | 'over'
   let container;
-  let initialized = false;  // guard against duplicate event listeners
+  let initialized = false;
 
-  // ── Init ───────────────────────────────────────────────────
+  // ── ToolRegistry entry ────────────────────────────────────
   window.ToolRegistry = window.ToolRegistry || {};
   window.ToolRegistry['snake'] = {
     init(el) {
       container = el;
 
-      // Override tool-ui default flex centering
-      el.style.flexDirection  = 'column';
-      el.style.alignItems     = 'stretch';
-      el.style.justifyContent = 'flex-start';
-      el.style.padding        = '0';
-      el.style.minHeight      = 'auto';
+      // Reset tool-ui defaults so game can control layout
+      el.style.cssText += ';flex-direction:column;align-items:stretch;'
+        + 'justify-content:flex-start;padding:0;min-height:auto;';
 
       highScore = parseInt(localStorage.getItem(LS_KEY) || '0', 10);
 
@@ -59,145 +72,112 @@
     },
   };
 
-  // ── DOM construction ───────────────────────────────────────
+  // ── DOM construction ──────────────────────────────────────
   function buildDOM(el) {
-    // Wrapper: [dpad-p1] [canvas] [dpad-p2]
-    wrap = document.createElement('div');
-    wrap.className = 'snake2-wrap';
-
-    const p1Dpad = makeDpad('P1', handleP1);
-    const p2Dpad = makeDpad('P2', handleP2);
+    const wrap = document.createElement('div');
+    wrap.className = IS_TOUCH ? 'snake2-wrap snake2-touch' : 'snake2-wrap snake2-pc';
 
     const canvasArea = document.createElement('div');
     canvasArea.className = 'snake2-canvas-area';
 
     canvas = document.createElement('canvas');
+    canvas.addEventListener('click', onCanvasClick);
     canvasArea.appendChild(canvas);
     ctx = canvas.getContext('2d');
 
-    // Desktop: [p1dpad][canvas][p2dpad] in a flex row
-    wrap.appendChild(p1Dpad);
-    wrap.appendChild(canvasArea);
-    wrap.appendChild(p2Dpad);
-
-    // For mobile portrait: move dpads below canvas
-    // We duplicate via a row div only visible in column layout
-    const dpadRowMobile = document.createElement('div');
-    dpadRowMobile.className = 'snake2-dpad-row snake2-mobile-dpad';
-    dpadRowMobile.appendChild(makeDpad('P1m', handleP1));
-    dpadRowMobile.appendChild(makeDpad('P2m', handleP2));
+    if (IS_TOUCH) {
+      // Mobile: P1 dpad (top) → canvas → P2 dpad (bottom)
+      wrap.appendChild(makeDpad('P1', handleP1));
+      wrap.appendChild(canvasArea);
+      wrap.appendChild(makeDpad('P2', handleP2));
+    } else {
+      // PC: canvas only
+      wrap.appendChild(canvasArea);
+    }
 
     el.appendChild(wrap);
-    el.appendChild(dpadRowMobile);
-
-    // Show correct dpad layout based on orientation/width
-    updateDpadVisibility();
-
-    canvas.addEventListener('click', onCanvasClick);
   }
 
-  function makeDpad(id, handler) {
+  // D-pad: classic diamond layout (up / left down right)
+  function makeDpad(label, handler) {
     const pad = document.createElement('div');
     pad.className = 'snake2-dpad';
 
-    const dirs = [
-      { cls: 'dpad-up',    label: '▲', dir: 'up'    },
-      { cls: 'dpad-left',  label: '◄', dir: 'left'  },
-      { cls: 'dpad-right', label: '►', dir: 'right' },
-      { cls: 'dpad-down',  label: '▼', dir: 'down'  },
-    ];
+    const title = document.createElement('span');
+    title.className = 'snake2-dpad-label';
+    title.textContent = label;
+    pad.appendChild(title);
 
-    dirs.forEach(({ cls, label, dir }) => {
+    const grid = document.createElement('div');
+    grid.className = 'snake2-dpad-grid';
+
+    [
+      { cls: 'dpad-up',    ch: '▲', dx:  0, dy: -1 },
+      { cls: 'dpad-left',  ch: '◀', dx: -1, dy:  0 },
+      { cls: 'dpad-down',  ch: '▼', dx:  0, dy:  1 },
+      { cls: 'dpad-right', ch: '▶', dx:  1, dy:  0 },
+    ].forEach(({ cls, ch, dx, dy }) => {
       const btn = document.createElement('button');
-      btn.className = cls;
-      btn.textContent = label;
-      btn.setAttribute('aria-label', dir);
+      btn.className = `snake2-btn ${cls}`;
+      btn.textContent = ch;
+      btn.setAttribute('aria-label', cls.replace('dpad-', ''));
+      btn.setAttribute('tabindex', '-1');
       btn.addEventListener('touchstart', e => {
         e.preventDefault();
-        handler(dir);
+        handler(dx, dy);
       }, { passive: false });
-      btn.addEventListener('mousedown', () => handler(dir));
-      pad.appendChild(btn);
+      btn.addEventListener('mousedown', () => handler(dx, dy));
+      grid.appendChild(btn);
     });
 
+    pad.appendChild(grid);
     return pad;
   }
 
-  function updateDpadVisibility() {
-    if (!wrap) return;
-    const isMobilePortrait = window.innerWidth <= 720 ||
-      (window.innerWidth < 900 && window.innerHeight > window.innerWidth);
+  // ── Canvas sizing ─────────────────────────────────────────
+  const DPAD_H = 92;  // estimated D-pad block height (px)
 
-    const sideDpads  = wrap.querySelectorAll('.snake2-dpad');
-    const mobileRow  = container.querySelector('.snake2-mobile-dpad');
-
-    sideDpads.forEach(d => {
-      d.style.display = isMobilePortrait ? 'none' : 'grid';
-    });
-    if (mobileRow) {
-      mobileRow.style.display = isMobilePortrait ? 'flex' : 'none';
-    }
-  }
-
-  // ── Size calculation ───────────────────────────────────────
   function calcSize() {
-    // Available width: container width minus side dpads (if visible)
-    const isMobile = window.innerWidth <= 720 ||
-      (window.innerWidth < 900 && window.innerHeight > window.innerWidth);
+    let avail;
 
-    let availW, availH;
-
-    if (isMobile) {
-      // Portrait mobile: use most of the viewport width
-      availW = Math.min(window.innerWidth - 24, 360);
-      availH = availW;
+    if (IS_TOUCH) {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const isLandscape = vw > vh;
+      const canvasH = isLandscape
+        ? vh - DPAD_H * 2 - 12
+        : Math.min(vw, vh * 0.55);
+      avail = Math.max(160, Math.min(vw - 8, canvasH));
     } else {
-      // Desktop / landscape: subtract dpad space (2 × ~160px) from container
-      const containerW = container.getBoundingClientRect().width || 600;
-      availW = containerW - 160 * 2 - 24;
-      availH = Math.min(window.innerHeight * 0.6, 440);
+      // PC: fill tool-ui container (minus small padding)
+      const cw  = container.getBoundingClientRect().width || 560;
+      const maxH = Math.min(window.innerHeight * 0.72, 540);
+      avail = Math.min(cw - 16, maxH);
     }
 
-    cellSize = Math.floor(Math.min(availW, availH) / COLS);
-    if (cellSize < 10) cellSize = 10;
-
+    cellSize = Math.max(8, Math.floor(avail / COLS));
     canvas.width  = cellSize * COLS;
     canvas.height = cellSize * ROWS;
   }
 
-  function onResize() {
-    calcSize();
-    updateDpadVisibility();
-    drawFrame();
-  }
+  function onResize() { calcSize(); drawFrame(); }
 
-  // ── Game reset ─────────────────────────────────────────────
+  // ── Game reset ────────────────────────────────────────────
   function resetGame() {
     score      = 0;
     intervalMs = INIT_MS;
     gameState  = 'ready';
 
-    // P1 starts on left side, heading right
     p1 = {
-      body: [
-        { x: 4, y: 10 },
-        { x: 3, y: 10 },
-        { x: 2, y: 10 },
-      ],
-      dir:  { x: 1, y: 0 },
-      next: { x: 1, y: 0 },
+      body:  [{ x: 4, y: 10 }, { x: 3, y: 10 }, { x: 2, y: 10 }],
+      dir:   { x: 1, y: 0 },
+      next:  { x: 1, y: 0 },
       alive: true,
     };
-
-    // P2 starts on right side, heading left
     p2 = {
-      body: [
-        { x: 15, y: 10 },
-        { x: 16, y: 10 },
-        { x: 17, y: 10 },
-      ],
-      dir:  { x: -1, y: 0 },
-      next: { x: -1, y: 0 },
+      body:  [{ x: 15, y: 10 }, { x: 16, y: 10 }, { x: 17, y: 10 }],
+      dir:   { x: -1, y: 0 },
+      next:  { x: -1, y: 0 },
       alive: true,
     };
 
@@ -206,19 +186,16 @@
   }
 
   function spawnFood() {
-    const occupied = new Set();
-    [...p1.body, ...p2.body].forEach(c => occupied.add(`${c.x},${c.y}`));
-
-    let x, y;
+    const occ = new Set([...p1.body, ...p2.body].map(c => `${c.x},${c.y}`));
+    let x, y, tries = 0;
     do {
       x = Math.floor(Math.random() * COLS);
       y = Math.floor(Math.random() * ROWS);
-    } while (occupied.has(`${x},${y}`));
-
+    } while (occ.has(`${x},${y}`) && ++tries < 400);
     food = { x, y };
   }
 
-  // ── Game loop ──────────────────────────────────────────────
+  // ── Game loop ─────────────────────────────────────────────
   function startGame() {
     gameState = 'running';
     stopTimer();
@@ -230,26 +207,18 @@
   }
 
   function tick() {
-    moveSnake(p1);
-    moveSnake(p2);
+    move(p1);
+    move(p2);
     checkCollisions();
     if (gameState === 'running') drawFrame();
   }
 
-  function moveSnake(snake) {
+  function move(snake) {
     if (!snake.alive) return;
-
-    // Commit queued direction
     snake.dir = snake.next;
-
-    const head = snake.body[0];
-    const nx   = head.x + snake.dir.x;
-    const ny   = head.y + snake.dir.y;
-
-    snake.body.unshift({ x: nx, y: ny });
-
-    // Check if ate food
-    if (nx === food.x && ny === food.y) {
+    const h = snake.body[0];
+    snake.body.unshift({ x: h.x + snake.dir.x, y: h.y + snake.dir.y });
+    if (snake.body[0].x === food.x && snake.body[0].y === food.y) {
       score++;
       spawnFood();
       speedUp();
@@ -265,382 +234,327 @@
   }
 
   function checkCollisions() {
-    checkSnakeDeath(p1, p2);
-    checkSnakeDeath(p2, p1);
-
+    kill(p1, p2);
+    kill(p2, p1);
     if (!p1.alive || !p2.alive) {
-      gameOver();
+      gameState = 'over';
+      stopTimer();
+      if (score > highScore) {
+        highScore = score;
+        localStorage.setItem(LS_KEY, String(highScore));
+      }
+      drawFrame();
     }
   }
 
-  function checkSnakeDeath(snake, other) {
+  function kill(snake, other) {
     if (!snake.alive) return;
-    const head = snake.body[0];
-
-    // Wall collision
-    if (head.x < 0 || head.x >= COLS || head.y < 0 || head.y >= ROWS) {
-      snake.alive = false;
-      return;
-    }
-
-    // Self collision (skip head itself at index 0)
+    const { x, y } = snake.body[0];
+    if (x < 0 || x >= COLS || y < 0 || y >= ROWS) { snake.alive = false; return; }
     for (let i = 1; i < snake.body.length; i++) {
-      if (head.x === snake.body[i].x && head.y === snake.body[i].y) {
-        snake.alive = false;
-        return;
-      }
+      if (x === snake.body[i].x && y === snake.body[i].y) { snake.alive = false; return; }
     }
-
-    // Other snake collision (full body)
     for (const seg of other.body) {
-      if (head.x === seg.x && head.y === seg.y) {
-        snake.alive = false;
-        return;
-      }
+      if (x === seg.x && y === seg.y) { snake.alive = false; return; }
     }
   }
 
-  function gameOver() {
-    gameState = 'over';
-    stopTimer();
-    if (score > highScore) {
-      highScore = score;
-      localStorage.setItem(LS_KEY, String(highScore));
-    }
-    drawFrame();
-  }
-
-  // ── Input ──────────────────────────────────────────────────
-
-  // Check if snake2 canvas is currently visible in the DOM
-  function isActive() {
-    return canvas && document.body.contains(canvas);
-  }
+  // ── Input ─────────────────────────────────────────────────
+  function isActive() { return canvas && document.body.contains(canvas); }
 
   function setDir1(dx, dy) {
-    // Reject if opposite of queued direction (not just current dir)
-    if (dx === -p1.next.x && dy === -p1.next.y) return;
-    p1.next = { x: dx, y: dy };
+    if (dx !== -p1.next.x || dy !== -p1.next.y) p1.next = { x: dx, y: dy };
   }
-
   function setDir2(dx, dy) {
-    if (dx === -p2.next.x && dy === -p2.next.y) return;
-    p2.next = { x: dx, y: dy };
+    if (dx !== -p2.next.x || dy !== -p2.next.y) p2.next = { x: dx, y: dy };
   }
 
-  function tryStart(isOver) {
-    if (isOver) { resetGame(); drawFrame(); }
+  function tryStart(wasOver) {
+    if (wasOver) { resetGame(); drawFrame(); }
     startGame();
   }
 
   function onKey(e) {
     if (!isActive()) return;
+    const k      = e.key;
+    const wasOver = gameState === 'over';
+    const idle   = gameState === 'ready' || wasOver;
 
-    const k = e.key;
-    const isReady = gameState === 'ready';
-    const isOver  = gameState === 'over';
-
-    if (isReady || isOver) {
+    if (idle) {
       const valid = ['w','a','s','d','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','o','k','l',';'];
-      if (valid.includes(k)) { tryStart(isOver); }
-      else { return; }
+      if (valid.includes(k)) tryStart(wasOver);
+      else return;
     }
 
-    // P1: WASD
-    if      (k === 'w') { setDir1( 0, -1); e.preventDefault(); }
-    else if (k === 's') { setDir1( 0,  1); e.preventDefault(); }
-    else if (k === 'a') { setDir1(-1,  0); e.preventDefault(); }
-    else if (k === 'd') { setDir1( 1,  0); e.preventDefault(); }
+    if      (k === 'w') { setDir1( 0,-1); e.preventDefault(); }
+    else if (k === 's') { setDir1( 0, 1); e.preventDefault(); }
+    else if (k === 'a') { setDir1(-1, 0); e.preventDefault(); }
+    else if (k === 'd') { setDir1( 1, 0); e.preventDefault(); }
 
-    // P2: Arrow keys
-    if      (k === 'ArrowUp')    { setDir2( 0, -1); e.preventDefault(); }
-    else if (k === 'ArrowDown')  { setDir2( 0,  1); e.preventDefault(); }
-    else if (k === 'ArrowLeft')  { setDir2(-1,  0); e.preventDefault(); }
-    else if (k === 'ArrowRight') { setDir2( 1,  0); e.preventDefault(); }
+    if      (k === 'ArrowUp')    { setDir2( 0,-1); e.preventDefault(); }
+    else if (k === 'ArrowDown')  { setDir2( 0, 1); e.preventDefault(); }
+    else if (k === 'ArrowLeft')  { setDir2(-1, 0); e.preventDefault(); }
+    else if (k === 'ArrowRight') { setDir2( 1, 0); e.preventDefault(); }
 
-    // P2: O(up) K(left) L(down) ;(right)
-    if      (k === 'o') { setDir2( 0, -1); e.preventDefault(); }
-    else if (k === 'l') { setDir2( 0,  1); e.preventDefault(); }
-    else if (k === 'k') { setDir2(-1,  0); e.preventDefault(); }
-    else if (k === ';') { setDir2( 1,  0); e.preventDefault(); }
+    // O=up K=left L=down ;=right  (WASD analog for right hand)
+    if      (k === 'o') { setDir2( 0,-1); e.preventDefault(); }
+    else if (k === 'l') { setDir2( 0, 1); e.preventDefault(); }
+    else if (k === 'k') { setDir2(-1, 0); e.preventDefault(); }
+    else if (k === ';') { setDir2( 1, 0); e.preventDefault(); }
   }
 
-  function handleP1(dir) {
+  function handleP1(dx, dy) {
     if (!isActive()) return;
-    if (gameState === 'ready' || gameState === 'over') tryStart(gameState === 'over');
-    if (dir === 'up')    setDir1( 0, -1);
-    if (dir === 'down')  setDir1( 0,  1);
-    if (dir === 'left')  setDir1(-1,  0);
-    if (dir === 'right') setDir1( 1,  0);
+    if (gameState !== 'running') tryStart(gameState === 'over');
+    setDir1(dx, dy);
   }
-
-  function handleP2(dir) {
+  function handleP2(dx, dy) {
     if (!isActive()) return;
-    if (gameState === 'ready' || gameState === 'over') tryStart(gameState === 'over');
-    if (dir === 'up')    setDir2( 0, -1);
-    if (dir === 'down')  setDir2( 0,  1);
-    if (dir === 'left')  setDir2(-1,  0);
-    if (dir === 'right') setDir2( 1,  0);
+    if (gameState !== 'running') tryStart(gameState === 'over');
+    setDir2(dx, dy);
   }
 
   function onCanvasClick() {
-    if (gameState === 'ready') { startGame(); return; }
-    if (gameState === 'over')  { resetGame(); drawFrame(); }
+    if (gameState === 'ready') startGame();
+    else if (gameState === 'over') { resetGame(); drawFrame(); }
   }
 
-  // ── Rendering ──────────────────────────────────────────────
+  // ── Rendering ─────────────────────────────────────────────
+  // Pixel-perfect coordinate helper
+  function r(n) { return Math.round(n); }
+
+  // Cell rectangle (with GAP inset for dot-art look)
+  function cr(gx, gy) {
+    return {
+      x: gx * cellSize + GAP,
+      y: gy * cellSize + GAP,
+      w: cellSize - GAP * 2,
+      h: cellSize - GAP * 2,
+    };
+  }
+
   function drawFrame() {
-    const cs = cellSize;
-    const W  = canvas.width;
-    const H  = canvas.height;
+    const pal = palette();
+    const W   = canvas.width;
+    const H   = canvas.height;
+    const cs  = cellSize;
 
-    // Background
-    ctx.clearRect(0, 0, W, H);
-    drawGrid(W, H, cs);
+    // ── Background: draw each cell as a faint dot-grid ─────
+    ctx.fillStyle = pal.bg;
+    ctx.fillRect(0, 0, W, H);
 
-    // Food
-    drawFood(food.x, food.y, cs);
-
-    // Snakes
-    drawSnake(p1, P1_COLOR, P1_HEAD, cs);
-    drawSnake(p2, P2_COLOR, P2_HEAD, cs);
-
-    // HUD
-    drawHUD(W);
-
-    // Overlays
-    if (gameState === 'ready') drawReadyOverlay(W, H);
-    if (gameState === 'over')  drawGameOverOverlay(W, H);
-  }
-
-  function drawGrid(W, H, cs) {
-    // Subtle grid dots
-    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-    ctx.fillStyle = isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)';
-    for (let x = 0; x < COLS; x++) {
-      for (let y = 0; y < ROWS; y++) {
-        ctx.beginPath();
-        ctx.arc(x * cs + cs / 2, y * cs + cs / 2, 1, 0, Math.PI * 2);
-        ctx.fill();
+    ctx.fillStyle = pal.cell;
+    for (let gx = 0; gx < COLS; gx++) {
+      for (let gy = 0; gy < ROWS; gy++) {
+        const { x, y, w, h } = cr(gx, gy);
+        ctx.fillRect(r(x), r(y), r(w), r(h));
       }
     }
+
+    // ── Food ───────────────────────────────────────────────
+    drawFood(pal);
+
+    // ── Snakes ─────────────────────────────────────────────
+    drawSnake(p1, pal.p1, pal.p1h, pal);
+    drawSnake(p2, pal.p2, pal.p2h, pal);
+
+    // ── HUD ────────────────────────────────────────────────
+    drawHUD(pal, W, H);
+
+    // ── Overlays ───────────────────────────────────────────
+    if (gameState === 'ready') drawReadyOverlay(pal, W, H);
+    if (gameState === 'over')  drawGameOverOverlay(pal, W, H);
   }
 
-  function drawSnake(snake, bodyColor, headColor, cs) {
-    const body = snake.body;
-    if (body.length === 0) return;
+  // Draw snake body using pixel-rectangle segments
+  function drawSnake(snake, bodyCol, headCol, pal) {
+    if (!snake.body.length) return;
 
-    const r = cs * 0.38;  // dot radius
-
-    // Draw body segments (back to front, so head is on top)
-    for (let i = body.length - 1; i >= 1; i--) {
-      const seg  = body[i];
-      const next = body[i - 1];
-
-      ctx.fillStyle = bodyColor;
-
-      // Draw a pill connecting this segment to the next
-      drawSegmentPill(seg, next, bodyColor, r, cs);
+    // Body segments (tail → neck)
+    ctx.fillStyle = bodyCol;
+    for (let i = snake.body.length - 1; i >= 1; i--) {
+      const { x, y, w, h } = cr(snake.body[i].x, snake.body[i].y);
+      ctx.fillRect(r(x), r(y), r(w), r(h));
+      // Bridge the gap to the next segment
+      bridgeGap(snake.body[i], snake.body[i - 1], bodyCol);
     }
 
-    // Draw each body dot
-    for (let i = body.length - 1; i >= 1; i--) {
-      const seg = body[i];
-      ctx.fillStyle = bodyColor;
-      ctx.beginPath();
-      ctx.arc(seg.x * cs + cs / 2, seg.y * cs + cs / 2, r, 0, Math.PI * 2);
-      ctx.fill();
+    // Bridge head → neck
+    if (snake.body.length > 1) {
+      bridgeGap(snake.body[0], snake.body[1], bodyCol);
     }
 
-    // Draw head
-    const head = body[0];
-    const hx   = head.x * cs + cs / 2;
-    const hy   = head.y * cs + cs / 2;
-    const hr   = cs * 0.44;
+    // Head cell
+    const { x: hx, y: hy, w: hw, h: hh } = cr(snake.body[0].x, snake.body[0].y);
+    ctx.fillStyle = headCol;
+    ctx.fillRect(r(hx), r(hy), r(hw), r(hh));
 
-    ctx.fillStyle = headColor;
-    ctx.beginPath();
-    ctx.arc(hx, hy, hr, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Eyes
-    drawEyes(hx, hy, snake.dir, cs);
+    // Pixel eyes
+    drawEyes(hx, hy, hw, hh, snake.dir);
 
     // Dead overlay
     if (!snake.alive) {
-      ctx.fillStyle = 'rgba(0,0,0,0.45)';
-      body.forEach(seg => {
-        ctx.beginPath();
-        ctx.arc(seg.x * cs + cs / 2, seg.y * cs + cs / 2, r, 0, Math.PI * 2);
-        ctx.fill();
+      ctx.fillStyle = pal.overlay;
+      snake.body.forEach(seg => {
+        const c = cr(seg.x, seg.y);
+        ctx.fillRect(r(c.x), r(c.y), r(c.w), r(c.h));
       });
     }
   }
 
-  function drawSegmentPill(a, b, color, r, cs) {
-    // Fill a rectangle between two adjacent segment centers to smooth the body
-    const ax = a.x * cs + cs / 2;
-    const ay = a.y * cs + cs / 2;
-    const bx = b.x * cs + cs / 2;
-    const by = b.y * cs + cs / 2;
+  // Fill the GAP-wide strip between two adjacent grid cells
+  function bridgeGap(a, b, col) {
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    if (Math.abs(dx) + Math.abs(dy) !== 1) return; // only adjacent cells
 
-    ctx.fillStyle = color;
-    ctx.beginPath();
-    // Rect covering the gap
-    const dx = Math.abs(ax - bx);
-    const dy = Math.abs(ay - by);
-    if (dx > dy) {
-      // Horizontal
-      ctx.rect(Math.min(ax, bx), ay - r, dx, r * 2);
-    } else {
-      // Vertical
-      ctx.rect(ax - r, Math.min(ay, by), r * 2, dy);
-    }
-    ctx.fill();
+    const { x, y, w, h } = cr(a.x, a.y);
+    ctx.fillStyle = col;
+
+    if (dx === 1)       ctx.fillRect(r(x + w),       r(y), GAP * 2, r(h));
+    else if (dx === -1) ctx.fillRect(r(x - GAP * 2), r(y), GAP * 2, r(h));
+    if (dy === 1)       ctx.fillRect(r(x), r(y + h),       r(w), GAP * 2);
+    else if (dy === -1) ctx.fillRect(r(x), r(y - GAP * 2), r(w), GAP * 2);
   }
 
-  function drawEyes(hx, hy, dir, cs) {
-    const er  = cs * 0.10;  // eye radius
-    const off = cs * 0.15;  // offset from center
+  function drawEyes(hx, hy, hw, hh, dir) {
+    const es = Math.max(2, Math.floor(cellSize / 7));  // eye square size
+    const q  = Math.floor(hw / 4);
 
-    // Eye positions depend on movement direction
-    let ex1, ey1, ex2, ey2;
+    let e1x, e1y, e2x, e2y;
 
-    if (dir.x === 1) {        // right
-      ex1 = hx + off; ey1 = hy - off;
-      ex2 = hx + off; ey2 = hy + off;
+    if (dir.x === 1) {         // right
+      e1x = hx + hw - es - 1; e1y = hy + q;
+      e2x = hx + hw - es - 1; e2y = hy + hh - q - es;
     } else if (dir.x === -1) { // left
-      ex1 = hx - off; ey1 = hy - off;
-      ex2 = hx - off; ey2 = hy + off;
+      e1x = hx + 1;           e1y = hy + q;
+      e2x = hx + 1;           e2y = hy + hh - q - es;
     } else if (dir.y === -1) { // up
-      ex1 = hx - off; ey1 = hy - off;
-      ex2 = hx + off; ey2 = hy - off;
+      e1x = hx + q;           e1y = hy + 1;
+      e2x = hx + hw - q - es; e2y = hy + 1;
     } else {                   // down
-      ex1 = hx - off; ey1 = hy + off;
-      ex2 = hx + off; ey2 = hy + off;
+      e1x = hx + q;           e1y = hy + hh - es - 1;
+      e2x = hx + hw - q - es; e2y = hy + hh - es - 1;
     }
 
+    // White sclera
     ctx.fillStyle = '#ffffff';
-    ctx.beginPath(); ctx.arc(ex1, ey1, er, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(ex2, ey2, er, 0, Math.PI * 2); ctx.fill();
+    ctx.fillRect(r(e1x), r(e1y), es, es);
+    ctx.fillRect(r(e2x), r(e2y), es, es);
 
-    // Pupils
-    ctx.fillStyle = '#222222';
-    const pr = er * 0.55;
-    ctx.beginPath(); ctx.arc(ex1 + dir.x * er * 0.3, ey1 + dir.y * er * 0.3, pr, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(ex2 + dir.x * er * 0.3, ey2 + dir.y * er * 0.3, pr, 0, Math.PI * 2); ctx.fill();
+    // Dark pupil (offset towards movement direction)
+    const ps = Math.max(1, es - 1);
+    ctx.fillStyle = '#111111';
+    ctx.fillRect(r(e1x + dir.x), r(e1y + dir.y), ps, ps);
+    ctx.fillRect(r(e2x + dir.x), r(e2y + dir.y), ps, ps);
   }
 
-  function drawFood(fx, fy, cs) {
-    const cx = fx * cs + cs / 2;
-    const cy = fy * cs + cs / 2;
-    const r  = cs * 0.32;
+  function drawFood(pal) {
+    const cs = cellSize;
+    const s  = Math.max(4, Math.floor(cs * 0.5));
+    const ox = r(food.x * cs + Math.floor((cs - s) / 2));
+    const oy = r(food.y * cs + Math.floor((cs - s) / 2));
 
-    // Apple body
-    ctx.fillStyle = FOOD_COLOR;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.fill();
+    // Main square dot
+    ctx.fillStyle = pal.food;
+    ctx.fillRect(ox, oy, s, s);
 
-    // Shine dot
-    ctx.fillStyle = FOOD_SHINE;
-    ctx.beginPath();
-    ctx.arc(cx - r * 0.3, cy - r * 0.3, r * 0.25, 0, Math.PI * 2);
-    ctx.fill();
+    // Shine pixel (top-left corner)
+    if (s >= 6) {
+      ctx.fillStyle = pal.foodShine;
+      const shine = Math.max(1, Math.floor(s / 4));
+      ctx.fillRect(ox + 1, oy + 1, shine, shine);
+    }
 
-    // Stem
-    ctx.strokeStyle = '#228833';
-    ctx.lineWidth   = Math.max(1, cs * 0.07);
-    ctx.lineCap     = 'round';
-    ctx.beginPath();
-    ctx.moveTo(cx, cy - r);
-    ctx.lineTo(cx + r * 0.3, cy - r * 1.4);
-    ctx.stroke();
+    // Shadow pixel (bottom-right corner)
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    const sh = Math.max(1, Math.floor(s / 3));
+    ctx.fillRect(ox + s - sh, oy + s - sh, sh, sh);
   }
 
-  function drawHUD(W) {
-    const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-    const fg     = isDark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.55)';
-    const fs     = Math.max(10, cellSize * 0.6);
+  function drawHUD(pal, W, H) {
+    const fs = Math.max(8, Math.floor(cellSize * 0.65));
+    ctx.font         = `${fs}px 'Neo둥근모', monospace`;
+    ctx.textBaseline = 'top';
 
-    ctx.font      = `bold ${fs}px monospace`;
-    ctx.fillStyle = fg;
+    // Score (top-left)
+    ctx.fillStyle = pal.muted;
     ctx.textAlign = 'left';
-    ctx.fillText(`SCORE ${score}`, 6, fs + 2);
+    ctx.fillText(`SCORE ${score}`, 4, 4);
 
+    // Best (top-right)
     ctx.textAlign = 'right';
-    ctx.fillText(`BEST ${highScore}`, W - 6, fs + 2);
+    ctx.fillText(`BEST ${highScore}`, W - 4, 4);
 
-    // Player labels
-    ctx.font      = `${Math.max(9, fs * 0.8)}px monospace`;
-    ctx.fillStyle = P1_COLOR;
-    ctx.textAlign = 'left';
-    ctx.fillText('P1', 6, canvas.height - 6);
+    // Player labels (bottom corners)
+    ctx.textBaseline = 'bottom';
+    ctx.fillStyle    = palette().p1;
+    ctx.textAlign    = 'left';
+    ctx.fillText('P1', 4, H - 3);
 
-    ctx.fillStyle = P2_COLOR;
+    ctx.fillStyle = palette().p2;
     ctx.textAlign = 'right';
-    ctx.fillText('P2', W - 6, canvas.height - 6);
-  }
-
-  function drawReadyOverlay(W, H) {
-    drawOverlayBg(W, H);
-    const fs = Math.max(14, cellSize);
-
-    ctx.textAlign    = 'center';
-    ctx.textBaseline = 'middle';
-
-    ctx.font      = `bold ${fs * 1.4}px monospace`;
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText('SNAKE2', W / 2, H / 2 - fs * 1.2);
-
-    ctx.font      = `${fs * 0.75}px monospace`;
-    ctx.fillStyle = 'rgba(255,255,255,0.8)';
-    ctx.fillText('키를 누르거나 D-pad를 눌러 시작', W / 2, H / 2);
-
-    ctx.font      = `${fs * 0.6}px monospace`;
-    ctx.fillStyle = P1_COLOR;
-    ctx.fillText('P1: W A S D', W / 2, H / 2 + fs * 1.1);
-    ctx.fillStyle = P2_COLOR;
-    ctx.fillText('P2: 방향키  또는  O K L ;', W / 2, H / 2 + fs * 1.8);
+    ctx.fillText('P2', W - 4, H - 3);
 
     ctx.textBaseline = 'alphabetic';
   }
 
-  function drawGameOverOverlay(W, H) {
-    drawOverlayBg(W, H);
-    const fs = Math.max(14, cellSize);
-
-    ctx.textAlign    = 'center';
-    ctx.textBaseline = 'middle';
-
-    ctx.font      = `bold ${fs * 1.4}px monospace`;
-    ctx.fillStyle = '#ff4455';
-    ctx.fillText('GAME OVER', W / 2, H / 2 - fs * 1.2);
-
-    ctx.font      = `${fs * 0.85}px monospace`;
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText(`점수: ${score}`, W / 2, H / 2);
-    ctx.fillText(`최고: ${highScore}`, W / 2, H / 2 + fs * 1.0);
-
-    // Loser label
-    const loser = !p1.alive && !p2.alive ? '동시 충돌!'
-      : !p1.alive ? 'P1 탈락'
-      : 'P2 탈락';
-
-    ctx.font      = `${fs * 0.7}px monospace`;
-    ctx.fillStyle = 'rgba(255,255,255,0.65)';
-    ctx.fillText(loser, W / 2, H / 2 + fs * 2.1);
-
-    ctx.font      = `${fs * 0.65}px monospace`;
-    ctx.fillStyle = 'rgba(255,255,255,0.5)';
-    ctx.fillText('키 또는 D-pad를 눌러 재시작', W / 2, H / 2 + fs * 3.1);
-
-    ctx.textBaseline = 'alphabetic';
-  }
-
-  function drawOverlayBg(W, H) {
-    ctx.fillStyle = 'rgba(0,0,0,0.62)';
+  function overlayBg(pal, W, H) {
+    ctx.fillStyle = pal.overlay;
     ctx.fillRect(0, 0, W, H);
+  }
+
+  function drawReadyOverlay(pal, W, H) {
+    overlayBg(pal, W, H);
+    const fs = Math.max(10, cellSize);
+
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+
+    ctx.font      = `${r(fs * 1.6)}px 'Neo둥근모', monospace`;
+    ctx.fillStyle = pal.text;
+    ctx.fillText('SNAKE2', W / 2, H / 2 - fs * 1.5);
+
+    ctx.font      = `${r(fs * 0.72)}px 'Neo둥근모', monospace`;
+    ctx.fillStyle = pal.muted;
+
+    if (IS_TOUCH) {
+      ctx.fillText('D-pad를 눌러 시작', W / 2, H / 2);
+    } else {
+      ctx.fillText('키를 눌러 시작', W / 2, H / 2 - fs * 0.2);
+      ctx.fillStyle = pal.p1;
+      ctx.fillText('P1  W A S D', W / 2, H / 2 + fs * 1.0);
+      ctx.fillStyle = pal.p2;
+      ctx.fillText('P2  방향키  /  O K L ;', W / 2, H / 2 + fs * 1.85);
+    }
+
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  function drawGameOverOverlay(pal, W, H) {
+    overlayBg(pal, W, H);
+    const fs = Math.max(10, cellSize);
+
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'middle';
+
+    ctx.font      = `${r(fs * 1.4)}px 'Neo둥근모', monospace`;
+    ctx.fillStyle = pal.food;
+    ctx.fillText('GAME OVER', W / 2, H / 2 - fs * 1.3);
+
+    ctx.font      = `${r(fs * 0.78)}px 'Neo둥근모', monospace`;
+    ctx.fillStyle = pal.text;
+    ctx.fillText(`SCORE  ${score}`, W / 2, H / 2);
+    ctx.fillText(`BEST   ${highScore}`, W / 2, H / 2 + fs * 0.95);
+
+    const loser = !p1.alive && !p2.alive ? '동시 충돌'
+      : !p1.alive ? 'P1 탈락' : 'P2 탈락';
+    ctx.font      = `${r(fs * 0.62)}px 'Neo둥근모', monospace`;
+    ctx.fillStyle = pal.muted;
+    ctx.fillText(loser, W / 2, H / 2 + fs * 2.1);
+    ctx.fillText('키 / D-pad로 재시작', W / 2, H / 2 + fs * 2.95);
+
+    ctx.textBaseline = 'alphabetic';
   }
 
 })();
